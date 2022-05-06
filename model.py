@@ -19,7 +19,7 @@ class EncoderCNN(nn.Module):
         features = features.view(features.size(0), -1)
         features = self.embed(features)
         return features
-    
+
 
 class DecoderRNN(nn.Module):
     def __init__(self, embed_size, hidden_size, vocab_size, num_layers=1):
@@ -31,10 +31,19 @@ class DecoderRNN(nn.Module):
         
         self.linear = nn.Linear(hidden_size, vocab_size)
     
-    def forward(self, features, captions):
+    # def forward(self, features, captions):
+    #     captions = captions[:, :-1]
+    #     embed = self.embedding_layer(captions)
+    #     embed = torch.cat((features.unsqueeze(1), embed), dim = 1)
+    #     lstm_outputs, _ = self.lstm(embed)
+    #     out = self.linear(lstm_outputs)
+        
+    #     return out
+
+    def forward(self, captions):
         captions = captions[:, :-1]
         embed = self.embedding_layer(captions)
-        embed = torch.cat((features.unsqueeze(1), embed), dim = 1)
+        # embed = torch.cat((features.unsqueeze(1), embed), dim = 1)
         lstm_outputs, _ = self.lstm(embed)
         out = self.linear(lstm_outputs)
         
@@ -61,6 +70,21 @@ class DecoderRNN(nn.Module):
 
         return outputs
         
+class FFNN(nn.Module):
+    def __init__(self,comb_feat,hidden_size = 500,out_size = 1):  
+        super.__init__()
+        # X = nn.functional.normalize(txt_vec,2,1)
+        # Y = nn.functional.normalize(img_vec,2,1)
+        # self.in_ten = torch.cat((X,Y) , 0) 
+        self.mlp = nn.Sequential( nn.Linear(len(comb_feat), hidden_size),nn.Linear(hidden_size, out_size))
+
+    def forward(self, img_feat,cap_feat):
+        X = nn.functional.normalize(cap_feat,2,1)
+        Y = nn.functional.normalize(img_feat,2,1)
+        features = torch.cat((X,Y) , 0) 
+        out = self.mlp(features)
+        return out
+
         
         #Comments for the sample function
             #LSTM layer
